@@ -4381,24 +4381,6 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 
 /***/ }),
 
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/badge/badge.mjs":
-/*!****************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/badge/badge.mjs ***!
-  \****************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Badge: () => (/* binding */ e0)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/badge/badge.mjs#Badge`);
-
-
-/***/ }),
-
 /***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/box/box.mjs":
 /*!************************************************************!*\
   !*** ./node_modules/@chakra-ui/react/dist/esm/box/box.mjs ***!
@@ -4431,60 +4413,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/button/button.mjs#Button`);
-
-
-/***/ }),
-
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/card/card-body.mjs":
-/*!*******************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/card/card-body.mjs ***!
-  \*******************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CardBody: () => (/* binding */ e0)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/card/card-body.mjs#CardBody`);
-
-
-/***/ }),
-
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/card/card-header.mjs":
-/*!*********************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/card/card-header.mjs ***!
-  \*********************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CardHeader: () => (/* binding */ e0)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/card/card-header.mjs#CardHeader`);
-
-
-/***/ }),
-
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/card/card.mjs":
-/*!**************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/card/card.mjs ***!
-  \**************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Card: () => (/* binding */ e0)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/card/card.mjs#Card`);
 
 
 /***/ }),
@@ -4564,45 +4492,6 @@ const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__W
 
 /***/ }),
 
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/grid/simple-grid.mjs":
-/*!*********************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/grid/simple-grid.mjs ***!
-  \*********************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   SimpleGrid: () => (/* binding */ e0)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/grid/simple-grid.mjs#SimpleGrid`);
-
-
-/***/ }),
-
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/progress/progress.mjs":
-/*!**********************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/progress/progress.mjs ***!
-  \**********************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Progress: () => (/* binding */ e0),
-/* harmony export */   useProgressStyles: () => (/* binding */ e1)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/progress/progress.mjs#Progress`);
-
-const e1 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/progress/progress.mjs#useProgressStyles`);
-
-
-/***/ }),
-
 /***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/spacer/spacer.mjs":
 /*!******************************************************************!*\
   !*** ./node_modules/@chakra-ui/react/dist/esm/spacer/spacer.mjs ***!
@@ -4653,81 +4542,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/stack/stack.mjs#Stack`);
-
-
-/***/ }),
-
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/stat/stat-help-text.mjs":
-/*!************************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/stat/stat-help-text.mjs ***!
-  \************************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   StatHelpText: () => (/* binding */ e0)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/stat/stat-help-text.mjs#StatHelpText`);
-
-
-/***/ }),
-
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/stat/stat-label.mjs":
-/*!********************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/stat/stat-label.mjs ***!
-  \********************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   StatLabel: () => (/* binding */ e0)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/stat/stat-label.mjs#StatLabel`);
-
-
-/***/ }),
-
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/stat/stat-number.mjs":
-/*!*********************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/stat/stat-number.mjs ***!
-  \*********************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   StatNumber: () => (/* binding */ e0)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/stat/stat-number.mjs#StatNumber`);
-
-
-/***/ }),
-
-/***/ "(rsc)/./node_modules/@chakra-ui/react/dist/esm/stat/stat.mjs":
-/*!**************************************************************!*\
-  !*** ./node_modules/@chakra-ui/react/dist/esm/stat/stat.mjs ***!
-  \**************************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Stat: () => (/* binding */ e0),
-/* harmony export */   useStatStyles: () => (/* binding */ e1)
-/* harmony export */ });
-/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
-
-
-const e0 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/stat/stat.mjs#Stat`);
-
-const e1 = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`/Users/kih/Documents/test/node_modules/@chakra-ui/react/dist/esm/stat/stat.mjs#useStatStyles`);
 
 
 /***/ }),
