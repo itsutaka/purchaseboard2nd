@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore'; // 如果前端需要直接存取 Firestore
 // 如果客戶端需要直接存取 Firestore，也引入 getFirestore
 // import { getFirestore } from 'firebase/firestore';
 
@@ -12,9 +13,16 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// 初始化 Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Initialize Firebase
+let app;
+try {
+  app = getApp();
+} catch (e) {
+  app = initializeApp(firebaseConfig);
+}
+
 const authClient = getAuth(app);
+const firestoreClient = getFirestore(app); // 如果前端需要直接存取 Firestore
 // const firestoreClient = getFirestore(app); // 如果需要客戶端 Firestore
 
-export { app, authClient /*, firestoreClient */ };
+export { app, authClient, firestoreClient };

@@ -14,11 +14,15 @@ if (!admin.apps.length) {
       // databaseURL: `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseio.com` (這是 Realtime Database 的格式)
       // Firestore 通常不需要 databaseURL
     });
+    console.log('Firebase Admin SDK initialized successfully.');
   } catch (error: any) {
-    console.error('Firebase admin initialization error', error.stack);
+    console.error('Firebase admin initialization error:', error);
+    // 在開發環境中，如果服務帳戶配置錯誤，可能會在這裡中斷
+    // 在生產環境中，確保環境變數設置正確
   }
 }
 
+// 導出常用的服務實例
 export const firestore = admin.firestore();
-export const auth = admin.auth(); // 如果你需要 Firebase Authentication
-export default admin;
+export const auth = admin.auth(); // 用於後端驗證 ID Token
+export default admin; // 如果需要其他 Admin SDK 功能

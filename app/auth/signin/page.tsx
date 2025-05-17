@@ -19,6 +19,8 @@ import {
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/firebaseClient'; // 引入客戶端 auth 實例
+import { signInWithEmailAndPassword } from 'firebase/auth'; // 引入 Firebase 登入方法
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -36,12 +38,13 @@ export default function SignInPage() {
       return;
     }
     
+    setLoading(true);
+    setError('');
+    
     try {
-      setLoading(true);
-      setError('');
-      
-      // 模擬登入成功
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 使用 Firebase Authentication 登入
+      const userCredential = await signInWithEmailAndPassword(authClient, email, password);
+      const user = userCredential.user; // 登入成功的用戶物件
       
       toast({
         title: '登入成功',
@@ -50,9 +53,17 @@ export default function SignInPage() {
         isClosable: true,
       });
       
-      router.push('/dashboard');
-    } catch (err) {
-      setError('電子郵件或密碼不正確');
+      router.push('/dashboard'); // 登入成功後導向儀表板
+    } catch (err: any) {
+      console.error("Signin error:", err);
+       // 根據 Firebase Auth 錯誤碼提供友善提示
+      if (err.code === 'auth/invalid-email') {
+        setError('電子郵件格式不正確');
+      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+         setError('電子郵件或密碼不正確');
+      } else {
+        setError('登入時發生錯誤: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -108,7 +119,7 @@ export default function SignInPage() {
             
             <Box textAlign="center">
               <Text>還沒有帳號？ {" "}
-                <Link href="/auth/signup">
+                <Link href="/auth/signup" passHref>
                   <ChakraLink color="blue.500">
                     註冊
                   </ChakraLink>

@@ -1,61 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import Order from '@/models/order';
+import { firestore, auth } from '@/lib/firebaseAdmin';
+import { Timestamp } from 'firebase-admin/firestore';
 
 // 獲取所有訂單
 export async function GET(req: NextRequest) {
   try {
-    await dbConnect();
-    
-    // 獲取查詢參數
-    const searchParams = req.nextUrl.searchParams;
-    const status = searchParams.get('status');
-    
-    // 構建查詢條件
-    const query: any = {};
-    if (status && status !== 'all') {
-      query.status = status;
-    }
-    
-    // 執行查詢，並關聯使用者資料
-    const orders = await Order.find(query)
-      .populate('requestedBy', 'name email')
-      .sort({ createdAt: -1 });
-    
-    return NextResponse.json(orders, { status: 200 });
-  } catch (error) {
-    console.error('獲取訂單錯誤:', error);
-    return NextResponse.json(
-      { error: '獲取訂單時發生錯誤' },
-      { status: 500 }
-    );
+    const ordersSnapshot = await firestore.collection('orders')
+                                          .orderBy('createdAt', 'desc')
+                                          .get();
+
+    const orders = ordersSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: (data.createdAt as Timestamp)?.toDate().toISOString(),
+        updatedAt: (data.updatedAt as Timestamp)?.toDate().toISOString(),
+      };
+    });
+
+    return NextResponse.json(orders);
+  } catch (error: any) {
+    console.error("Error fetching orders:", error);
+     if (error.code === 'auth/argument-error') {
+         return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 });
+     }
+    return NextResponse.json({ message: 'Error fetching orders' }, { status: 500 });
   }
 }
 
 // 創建新訂單
 export async function POST(req: NextRequest) {
   try {
-    await dbConnect();
-    
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ message: 'Authorization header missing or malformed' }, { status: 401 });
+    }
+
+    const idToken = authHeader.split(' ')[1];
+    const decodedToken = await auth.verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
+    const userDoc = await firestore.collection('users').doc(uid).get();
+    if (!userDoc.exists) {
+       return NextResponse.json({ message: 'User profile not found' }, { status: 404 });
+    }
+    const userData = userDoc.data();
+
     const body = await req.json();
-    
-    // 在實際應用中，需要從身份驗證中獲取 userId
-    const userId = '507f1f77bcf86cd799439011'; // 模擬用戶 ID
-    
-    // 創建新訂單
-    const newOrder = new Order({
-      ...body,
-      requestedBy: userId,
-    });
-    
-    await newOrder.save();
-    
-    return NextResponse.json(newOrder, { status: 201 });
-  } catch (error) {
-    console.error('創建訂單錯誤:', error);
-    return NextResponse.json(
-      { error: '創建訂單時發生錯誤' },
-      { status: 500 }
-    );
+    const { title, description, priority, quantity, url } = body;
+
+    if (!title || !quantity) {
+        return NextResponse.json({ message: 'Title and quantity are required' }, { status: 400 });
+    }
+     if (typeof quantity !== 'number' || quantity <= 0) {
+        return NextResponse.json({ message: 'Quantity must be a positive number' }, { status: 400 });
+     }
+
+    const newOrderData = {
+      title: title,
+      description: description || null,
+      priority: priority || 'MEDIUM',
+      quantity: quantity,
+      status: 'PENDING',
+      url: url || null,
+      requestedBy: {
+        userId: uid,
+        name: userData?.name || '未知用戶',
+        email: userData?.email || decodedToken.email || '未知郵箱',
+      },
+      comments: [],
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+
+    const docRef = await firestore.collection('orders').add(newOrderData);
+
+    return NextResponse.json({ id: docRef.id, ...newOrderData }, { status: 201 });
+
+  } catch (error: any) {
+    console.error("Error creating order:", error);
+     if (error.code === 'auth/argument-error') {
+         return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 });
+     }
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

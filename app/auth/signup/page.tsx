@@ -20,6 +20,9 @@ import {
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/firebaseClient'; // 引入客戶端 auth 實例
+import { createUserWithEmailAndPassword } from 'firebase/auth'; // 引入 Firebase 註冊方法
+import axios from 'axios'; // 用於呼叫後端 API
 
 export default function SignUpPage() {
   const [name, setName] = useState('');
@@ -39,13 +42,29 @@ export default function SignUpPage() {
       return;
     }
     
+    setLoading(true);
+    setError('');
+    
     try {
-      setLoading(true);
-      setError('');
-      
-      // 模擬註冊成功
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // 1. 使用 Firebase Authentication 建立用戶
+      const userCredential = await createUserWithEmailAndPassword(authClient, email, password);
+      const user = userCredential.user; // 成功註冊的用戶物件 (包含 uid, email 等)
+
+      // 2. 呼叫後端 API 在 Firestore 中建立對應的用戶文件
+      // 我們需要用戶的 UID 和在註冊表單中填寫的其他資訊 (姓名, 部門)
+      const idToken = await user.getIdToken(); // 獲取 Firebase ID Token 進行後端驗證
+
+      await axios.post('/api/users', { // 呼叫新的後端 API 路由
+        name: name,
+        department: department,
+        // 注意：email 和 uid 可以從後端驗證 token 後獲取，不需要從前端傳遞
+      }, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`, // 將 token 放在 Header 中
+          'Content-Type': 'application/json',
+        }
+      });
+
       toast({
         title: '註冊成功',
         description: '您的帳號已成功建立',
@@ -53,10 +72,24 @@ export default function SignUpPage() {
         duration: 3000,
         isClosable: true,
       });
-      
-      router.push('/auth/signin');
-    } catch (err) {
-      setError('註冊時發生錯誤');
+
+      router.push('/auth/signin'); // 註冊成功後導向登入頁
+
+    } catch (err: any) {
+      console.error("Signup error:", err);
+      // 根據 Firebase Auth 錯誤碼和後端 API 錯誤碼提供友善提示
+      if (err.code === 'auth/email-already-in-use') {
+        setError('電子郵件已被註冊');
+      } else if (err.code === 'auth/weak-password') {
+         setError('密碼強度不足，請至少輸入 6 個字元');
+      } else if (axios.isAxiosError(err) && err.response?.data?.message) {
+         // 顯示後端 API 返回的錯誤信息
+         setError('註冊後建立用戶文件失敗: ' + err.response.data.message);
+         // 考慮：如果後端建立用戶文件失敗，是否需要回滾 Firebase Auth 的註冊？這比較複雜，初期可以先不處理。
+      }
+      else {
+        setError('註冊時發生錯誤: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -101,12 +134,12 @@ export default function SignUpPage() {
                     type="password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="至少 8 個字元"
+                    placeholder="至少 6 個字元" // Firebase Auth 密碼長度要求至少 6 個字元
                   />
                 </FormControl>
                 
                 <FormControl>
-                  <FormLabel>部門</FormLabel>
+                  <FormLabel>部門 (選填)</FormLabel>
                   <Select 
                     placeholder="選擇您的部門" 
                     value={department}
@@ -147,7 +180,7 @@ export default function SignUpPage() {
             
             <Box textAlign="center">
               <Text>已有帳號？ {" "}
-                <Link href="/auth/signin">
+                <Link href="/auth/signin" passHref>
                   <ChakraLink color="blue.500">
                     登入
                   </ChakraLink>

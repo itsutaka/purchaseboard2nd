@@ -16,11 +16,16 @@ import {
   VStack,
   FormErrorMessage,
   useToast,
+  Heading,
+  Spinner,
+  Center,
+  Text
 } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 type OrderFormData = {
   title: string;
@@ -39,11 +44,31 @@ export default function OrderForm() {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   const onSubmit = async (data: OrderFormData) => {
+    if (!user) {
+        toast({
+            title: '錯誤',
+            description: '請登入以建立訂單',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+        });
+        return;
+    }
+
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await axios.post('/api/orders', data);
+      const idToken = await user.getIdToken();
+
+      const response = await axios.post('/api/orders', data, {
+         headers: {
+           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${idToken}`,
+         },
+      });
+
       toast({
         title: '訂單已建立',
         description: '您的購物請求已成功提交',
@@ -52,10 +77,13 @@ export default function OrderForm() {
         isClosable: true,
       });
       router.push('/orders');
-    } catch (error) {
+
+    } catch (error: any) {
+      console.error('Error submitting order:', error);
+       const errorMessage = error.response?.data?.message || '建立訂單時發生錯誤，請稍後再試';
       toast({
         title: '提交失敗',
-        description: '建立訂單時發生錯誤，請稍後再試',
+        description: errorMessage,
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -65,36 +93,50 @@ export default function OrderForm() {
     }
   };
 
+  if (authLoading) {
+      return (
+         <Center h="300px">
+           <Spinner size="xl" />
+         </Center>
+      );
+  }
+
+  if (!user) {
+      return (
+         <Center h="300px">
+            <Text>請登入以建立新的購物請求。</Text>
+         </Center>
+      );
+  }
+
   return (
-    <Box maxW="2xl" mx="auto" p={5} borderWidth="1px" borderRadius="lg">
+    <Box maxW="md" mx="auto" py={10}>
+       <Heading mb={6}>建立購物請求</Heading>
       <form onSubmit={handleSubmit(onSubmit)}>
         <VStack spacing={4}>
           <FormControl isInvalid={!!errors.title} isRequired>
             <FormLabel>標題</FormLabel>
             <Input
-              {...register('title', { required: '請輸入商品標題' })}
-              placeholder="請輸入您想購買的物品"
+              {...register('title', { required: '請輸入標題' })}
+              placeholder="例如：新筆記型電腦"
             />
             <FormErrorMessage>{errors.title?.message}</FormErrorMessage>
           </FormControl>
 
-          <FormControl isInvalid={!!errors.description} isRequired>
+           <FormControl isInvalid={!!errors.description} isRequired>
             <FormLabel>描述</FormLabel>
             <Textarea
-              {...register('description', { required: '請提供商品描述' })}
-              placeholder="請詳細描述您需要的物品（規格、型號等）"
-              rows={4}
+              {...register('description', { required: '請輸入描述' })}
+              placeholder="請提供詳細的描述，例如型號、規格等"
             />
-            <FormErrorMessage>{errors.description?.message}</FormErrorMessage>
+             <FormErrorMessage>{errors.description?.message}</FormErrorMessage>
           </FormControl>
 
           <FormControl isInvalid={!!errors.priority} isRequired>
             <FormLabel>優先級</FormLabel>
             <Select {...register('priority', { required: '請選擇優先級' })}>
               <option value="low">低</option>
-              <option value="medium" selected>
-                中
-              </option>
+              <option value="medium">中</option>
               <option value="high">高</option>
             </Select>
             <FormErrorMessage>{errors.priority?.message}</FormErrorMessage>
@@ -107,6 +149,7 @@ export default function OrderForm() {
                 {...register('quantity', {
                   required: '請輸入數量',
                   min: { value: 1, message: '數量必須至少為 1' },
+                  valueAsNumber: true,
                 })}
               />
               <NumberInputStepper>
