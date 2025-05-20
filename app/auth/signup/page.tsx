@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/firebaseClient'; // 引入客戶端 auth 實例
 import { createUserWithEmailAndPassword } from 'firebase/auth'; // 引入 Firebase 註冊方法
 import axios from 'axios'; // 用於呼叫後端 API
+import NextLink from 'next/link'; // 確保引入 next/link 並重命名
 
 export default function SignUpPage() {
   const [name, setName] = useState('');
@@ -50,19 +51,32 @@ export default function SignUpPage() {
       const userCredential = await createUserWithEmailAndPassword(authClient, email, password);
       const user = userCredential.user; // 成功註冊的用戶物件 (包含 uid, email 等)
 
+      console.log("Firebase Auth User created:", user);
+      if (!user) {
+          console.error("User object is null after signup!");
+          setError("註冊成功，但無法獲取用戶資訊，請稍後重試或聯繫管理員。");
+          setLoading(false);
+          return; // 如果 user 不存在，停止後續操作
+      }
+
       // 2. 呼叫後端 API 在 Firestore 中建立對應的用戶文件
       // 我們需要用戶的 UID 和在註冊表單中填寫的其他資訊 (姓名, 部門)
       const idToken = await user.getIdToken(); // 獲取 Firebase ID Token 進行後端驗證
+
+      console.log("Acquired ID Token:", idToken);
+
+      const requestHeaders = {
+           'Authorization': `Bearer ${idToken}`,
+           'Content-Type': 'application/json',
+      };
+      console.log("Sending headers to /api/users:", requestHeaders);
 
       await axios.post('/api/users', { // 呼叫新的後端 API 路由
         name: name,
         department: department,
         // 注意：email 和 uid 可以從後端驗證 token 後獲取，不需要從前端傳遞
       }, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`, // 將 token 放在 Header 中
-          'Content-Type': 'application/json',
-        }
+        headers: requestHeaders // 使用打印過的 headers
       });
 
       toast({
@@ -76,7 +90,7 @@ export default function SignUpPage() {
       router.push('/auth/signin'); // 註冊成功後導向登入頁
 
     } catch (err: any) {
-      console.error("Signup error:", err);
+      console.error("Signup process error:", err);
       // 根據 Firebase Auth 錯誤碼和後端 API 錯誤碼提供友善提示
       if (err.code === 'auth/email-already-in-use') {
         setError('電子郵件已被註冊');
@@ -85,7 +99,6 @@ export default function SignUpPage() {
       } else if (axios.isAxiosError(err) && err.response?.data?.message) {
          // 顯示後端 API 返回的錯誤信息
          setError('註冊後建立用戶文件失敗: ' + err.response.data.message);
-         // 考慮：如果後端建立用戶文件失敗，是否需要回滾 Firebase Auth 的註冊？這比較複雜，初期可以先不處理。
       }
       else {
         setError('註冊時發生錯誤: ' + err.message);
@@ -180,11 +193,9 @@ export default function SignUpPage() {
             
             <Box textAlign="center">
               <Text>已有帳號？ {" "}
-                <Link href="/auth/signin" passHref>
-                  <ChakraLink color="blue.500">
-                    登入
-                  </ChakraLink>
-                </Link>
+                <ChakraLink as={NextLink} href="/auth/signin" color="blue.500">
+                  登入
+                </ChakraLink>
               </Text>
             </Box>
           </Stack>

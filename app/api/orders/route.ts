@@ -38,7 +38,12 @@ export async function POST(req: NextRequest) {
     }
 
     const idToken = authHeader.split(' ')[1];
+
+    console.log("Backend /api/orders: Received ID Token:", idToken);
+
     const decodedToken = await auth.verifyIdToken(idToken);
+    console.log("Backend /api/orders: Decoded Token:", decodedToken);
+
     const uid = decodedToken.uid;
 
     const userDoc = await firestore.collection('users').doc(uid).get();
@@ -79,10 +84,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ id: docRef.id, ...newOrderData }, { status: 201 });
 
   } catch (error: any) {
-    console.error("Error creating order:", error);
-     if (error.code === 'auth/argument-error') {
-         return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 });
-     }
+    console.error("Backend /api/orders: Error:", error);
+    if (error.code === 'auth/argument-error' || error.code === 'auth/id-token-expired') {
+      console.error("Backend /api/orders: Token verification failed:", error.message);
+      return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 });
+    }
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

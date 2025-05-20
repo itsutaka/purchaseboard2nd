@@ -7,10 +7,27 @@
       "port": 5001
     },
     "firestore": {
-      "port": 8080
+      "port": 8081,
+      "rules": "firestore.rules",
+      "indexes": "firestore.indexes.json"
     },
     "hosting": {
-      "port": 5000
+      "port": 5000,
+      "public": ".next/static",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "run": {
+            "serviceId": "YOUR_CLOUD_RUN_SERVICE_ID",
+            "region": "YOUR_CLOUD_RUN_REGION"
+          }
+        }
+      ]
     },
     "ui": {
       "enabled": true

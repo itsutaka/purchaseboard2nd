@@ -11,7 +11,11 @@ export async function POST(request: Request) {
     }
 
     const idToken = authHeader.split(' ')[1];
-    const decodedToken = await auth.verifyIdToken(idToken); // 驗證 Token 並獲取用戶資訊
+    console.log("Backend received ID Token:", idToken); // <-- 後端 log 檢查接收到的 Token
+
+    // 驗證 ID Token
+    const decodedToken = await auth.verifyIdToken(idToken);
+    console.log("Backend decoded Token:", decodedToken); // <-- 後端 log (如果成功)
     const uid = decodedToken.uid; // 獲取用戶 UID
     const email = decodedToken.email; // 從 Token 中獲取郵箱
 
@@ -47,8 +51,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'User document created successfully', userId: uid }, { status: 201 });
 
   } catch (error: any) {
-    console.error("Error creating user document:", error);
+    console.error("Backend error:", error);
      if (error.code === 'auth/argument-error') {
+         console.error("Backend token verification failed:", error.message);
          return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 });
      }
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });

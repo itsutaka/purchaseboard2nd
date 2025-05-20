@@ -1,9 +1,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User } from 'firebase/auth';
-import { authClient } from '@/lib/firebaseClient'; // 引入客戶端 auth 實例
-import { firestoreClient } from '@/lib/firebaseClient'; // 如果需要在客戶端讀取用戶 Firestore 文件
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { authClient, firestoreClient } from '@/lib/firebaseClient'; // 引入客戶端 auth 實例
 import { doc, getDoc } from 'firebase/firestore'; // 引入 Firestore 讀取方法
 
 interface AuthContextType {

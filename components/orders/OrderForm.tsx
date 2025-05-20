@@ -44,10 +44,24 @@ export default function OrderForm() {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { currentUser, loading: authLoading } = useAuth();
+
+  console.log("OrderForm Render - authLoading:", authLoading, "currentUser:", currentUser);
 
   const onSubmit = async (data: OrderFormData) => {
-    if (!user) {
+    if (authLoading) {
+        console.log("onSubmit - 認證狀態仍在載入中");
+        toast({
+            title: '請稍候',
+            description: '正在確認用戶狀態...',
+            status: 'info',
+            duration: 3000,
+            isClosable: true,
+        });
+        return;
+    }
+    if (!currentUser) {
+        console.log("onSubmit - 使用者未登入");
         toast({
             title: '錯誤',
             description: '請登入以建立訂單',
@@ -60,13 +74,36 @@ export default function OrderForm() {
 
     setLoading(true);
     try {
-      const idToken = await user.getIdToken();
+      const idToken = await currentUser.getIdToken();
 
-      const response = await axios.post('/api/orders', data, {
-         headers: {
-           'Content-Type': 'application/json',
-           'Authorization': `Bearer ${idToken}`,
-         },
+      console.log("OrderForm: Acquired ID Token:", idToken);
+      if (!idToken) {
+         console.error("OrderForm: Failed to acquire ID Token.");
+         toast({
+             title: '錯誤',
+             description: '獲取用戶認證信息失敗，請稍後重試。',
+             status: 'error',
+             duration: 3000,
+             isClosable: true,
+         });
+         setLoading(false);
+         return;
+      }
+
+      const orderData = {
+        ...data,
+        userId: currentUser.uid,
+        status: 'Pending',
+        createdAt: new Date().toISOString(),
+      };
+
+      console.log("準備提交的訂單資料:", orderData);
+
+      const response = await axios.post('/api/orders', orderData, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
       });
 
       toast({
@@ -79,21 +116,42 @@ export default function OrderForm() {
       router.push('/orders');
 
     } catch (error: any) {
-      console.error('Error submitting order:', error);
-       const errorMessage = error.response?.data?.message || '建立訂單時發生錯誤，請稍後再試';
-      toast({
-        title: '提交失敗',
-        description: errorMessage,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
+      console.error('OrderForm: Error submitting order:', error);
+       if (axios.isAxiosError(error)) {
+           if (error.response?.status === 401) {
+               console.error("OrderForm: API returned 401 Unauthorized. Message:", error.response.data?.message);
+               toast({
+                 title: '提交失敗',
+                 description: error.response.data?.message || '未授權操作，請重新登入。',
+                 status: 'error',
+                 duration: 5000,
+                 isClosable: true,
+               });
+           } else {
+               toast({
+                 title: '提交失敗',
+                 description: error.response?.data?.message || '建立訂單時發生錯誤，請稍後再試',
+                 status: 'error',
+                 duration: 5000,
+                 isClosable: true,
+               });
+           }
+       } else {
+           toast({
+             title: '提交失敗',
+             description: '發生未知錯誤。',
+             status: 'error',
+             duration: 5000,
+             isClosable: true,
+           });
+       }
     } finally {
       setLoading(false);
     }
   };
 
   if (authLoading) {
+      console.log("OrderForm - 顯示 Spinner");
       return (
          <Center h="300px">
            <Spinner size="xl" />
@@ -101,7 +159,8 @@ export default function OrderForm() {
       );
   }
 
-  if (!user) {
+  if (!currentUser) {
+      console.log("OrderForm - 顯示登入提示");
       return (
          <Center h="300px">
             <Text>請登入以建立新的購物請求。</Text>

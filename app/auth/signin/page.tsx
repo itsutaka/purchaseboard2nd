@@ -119,7 +119,7 @@ export default function SignInPage() {
             
             <Box textAlign="center">
               <Text>還沒有帳號？ {" "}
-                <Link href="/auth/signup" passHref>
+                <Link href="/auth/signup" legacyBehavior>
                   <ChakraLink color="blue.500">
                     註冊
                   </ChakraLink>
