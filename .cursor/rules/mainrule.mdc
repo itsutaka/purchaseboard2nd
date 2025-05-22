@@ -1,0 +1,29 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+#專案結構指南 - Next.js 與 Firebase 整合
+
+本專案是一個使用 Next.js App Router 建構的應用程式，整合了 Firebase 進行身份驗證和 Firestore 資料庫。
+
+-   **應用程式入口與佈局:** 主要的應用程式佈局定義在 [app/layout.tsx](mdc:app/layout.tsx)，其中包含 AuthContext 的 Provider。
+-   **Firebase 客戶端 SDK:** 客戶端 Firebase 應用程式的初始化程式碼位於 [lib/firebaseClient.ts](mdc:lib/firebaseClient.ts)。這個檔案會使用 `NEXT_PUBLIC_FIREBASE_API_KEY` 環境變數。
+-   **Firebase Admin SDK:** 伺服器端（例如 API 路由）使用的 Firebase Admin SDK 初始化程式碼位於 [lib/firebaseAdmin.ts](mdc:lib/firebaseAdmin.ts)。這個檔案會連接到由 `FIREBASE_AUTH_EMULATOR_HOST` 和 `FIREBASE_FIRESTORE_EMULATOR_HOST` 控制的模擬器（本地開發時）。
+-   **身份驗證上下文:** 應用程式的身份驗證狀態由 [context/AuthContext.tsx](mdc:context/AuthContext.tsx) 管理，並通過 React Context API 提供給子元件。這個 Context 使用 Firebase 客戶端 SDK 監聽登入狀態變化。
+-   **API 路由:**
+    *   訂單相關的後端邏輯在 [app/api/orders/route.ts](mdc:app/api/orders/route.ts)。
+    *   使用者相關的後端邏輯可能在 [app/api/users/route.ts](mdc:app/api/users/route.ts) 或類似位置。這些路由使用 Firebase Admin SDK。
+-   **前端頁面與元件:**
+    *   登入頁面：[app/auth/signin/page.tsx](mdc:app/auth/signin/page.tsx) 包含登入表單和相關邏輯。
+    *   註冊頁面：[app/auth/signup/page.tsx](mdc:app/auth/signup/page.tsx) 包含註冊表單和相關邏輯。
+    *   訂單列表：[components/orders/OrderList.tsx](mdc:components/orders/OrderList.tsx) 從後端獲取並顯示訂單。
+    *   訂單詳情：[components/orders/OrderDetails.tsx](mdc:components/orders/OrderDetails.tsx) 顯示單個訂單的詳細資訊。
+    *   訂單表單：[components/orders/OrderForm.tsx](mdc:components/orders/OrderForm.tsx) 用於建立新訂單，需要使用者登入並獲取 ID Token。
+-   **環境變數:** 所有重要的配置變數都儲存在根目錄的 [.env.local](mdc:.env.local) 檔案中。
+-   **Firebase 配置:** Firebase 專案的整體配置（包括模擬器設定）在 [firebase.json](mdc:firebase.json)。
+
+**模擬器設定：**
+本地開發時，使用 Firebase Emulators Suite 模擬 Auth (Port 9099) 和 Firestore (Port 8081)。請確保 `.env.local` 中的 `FIREBASE_AUTH_EMULATOR_HOST` 和 `FIREBASE_FIRESTORE_EMULATOR_HOST` 指向正確的埠號，以供後端 Admin SDK 連接。前端客戶端 SDK 則通過 `firebaseClient.ts` 自動連接到模擬器（在設定了 `NEXT_PUBLIC_FIREBASE_EMULATOR_HOST` 等變數或在初始化時指定的情況下，或者如果模擬器運行在預設埠）。
+
+這個 Rule 應該能幫助 Cursor 更好地理解您的專案中不同檔案的功能和它們之間的關係。

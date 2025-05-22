@@ -1,3 +1,118 @@
-Error: firestore:rules is not a Firebase command
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
 
-Did you mean firestore:delete?
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to get the user's role from their user document
+    // This function assumes that user documents exist and their ID is the UID.
+    // It also assumes the user document contains a 'role' field.
+    // If the user document doesn't exist or has no role, it defaults to 'user'.
+    function getUserRole(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.role;
+    }
+
+    // Helper function to check if the authenticated user is a Staff or Admin
+    function isStaffOrAdmin() {
+      return isAuthenticated() && (getUserRole(request.auth.uid) == 'staff' || getUserRole(request.auth.uid) == 'admin');
+    }
+
+     // Helper function to check if the authenticated user is an Admin
+    function isAdmin() {
+      return isAuthenticated() && getUserRole(request.auth.uid) == 'admin';
+    }
+
+
+    // --- Rules for 'users' Collection ---
+    match /users/{userId} {
+      // Allow an authenticated user to read their own user document
+      // Allow Staff/Admin to read any user document (adjust if only Admin can read all users)
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isStaffOrAdmin());
+
+      // Allow an authenticated user to create their own user document
+      // This is typically used during the signup process in a secure backend call
+      allow create: if isAuthenticated() && request.auth.uid == userId
+                      // Optional: add validation for the data being written during create
+                      // e.g., && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'department', 'createdAt', 'updatedAt'])
+                      // && request.resource.data.email == request.auth.token.email // Ensure email matches token email
+                      // && request.resource.data.role == 'user'; // Prevent users from setting their own role to admin/staff on creation; backend should handle this
+                      ; // Basic rule: authenticated user creating their own doc
+
+      // Allow an authenticated user to update their own user document
+      // Prevent users from changing sensitive fields like 'role', 'email', 'createdAt'
+      allow update: if isAuthenticated() && request.auth.uid == userId
+                      && request.resource.data.keys().hasOnly(['name', 'department', 'updatedAt']) // Only allow updating name, department, updatedAt
+                      && request.resource.data.email == resource.data.email // Prevent changing email
+                      && request.resource.data.role == resource.data.role; // Prevent changing role
+
+      // No general delete access for user documents
+    }
+
+
+    // --- Rules for 'orders' Collection ---
+    match /orders/{orderId} {
+      // Allow any authenticated user to read any order document
+      allow read: if isAuthenticated();
+
+      // Allow authenticated user to create an order document
+      // Ensure that the 'requestedBy.userId' field in the new document matches the authenticated user's UID
+      allow create: if isAuthenticated()
+                      && request.resource.data.keys().hasAll(['title', 'description', 'priority', 'quantity', 'status', 'requestedBy', 'createdAt', 'updatedAt']) // Required fields
+                      && request.resource.data.requestedBy is map // requestedBy is a map (object)
+                      && request.resource.data.requestedBy.keys().hasAll(['userId', 'name', 'email']) // requestedBy contains these fields
+                      && request.resource.data.requestedBy.userId == request.auth.uid // requestedBy.userId matches the authenticated user's UID
+                      // Optional: add more data validation for other fields
+                      && request.resource.data.status == 'pending' // Ensure initial status is pending
+                      && request.resource.data.createdAt is timestamp // Ensure createdAt is a timestamp
+                      && request.resource.data.updatedAt is timestamp // Ensure updatedAt is a timestamp
+                      ;
+
+
+      // Allow Staff or Admin to update specific fields of an order
+      // They can only update 'status', 'price', 'url', and 'updatedAt'
+      // They cannot change 'requestedBy', 'title', 'description', 'quantity', 'createdAt', 'comments' or 'priority'
+      allow update: if isStaffOrAdmin()
+                      // Ensure only allowed fields are being changed or added
+                      && request.resource.data.keys().hasOnly(['status', 'price', 'url', 'updatedAt', 'comments']) // The fields that *might* be present in the request body
+                      // Also need to ensure existing fields are not being modified unless allowed
+                      // Check if the incoming data matches the existing data for fields not allowed to change
+                      && request.resource.data.title == resource.data.title
+                      && request.resource.data.description == resource.data.description
+                      && request.resource.data.priority == resource.data.priority
+                      && request.resource.data.quantity == resource.data.quantity
+                      && request.resource.data.requestedBy == resource.data.requestedBy // Prevent changing who requested the order
+                      && request.resource.data.createdAt == resource.data.createdAt // Prevent changing creation time
+                      // Need a specific rule or check for 'comments' update (adding to array)
+                      // This check is complex for array updates. A simpler approach is to make comments a subcollection.
+                      // If keeping as array, rely on backend API to handle array updates safely using FieldValue.arrayUnion
+                      ;
+
+      // Allow Admin to delete an order document
+      allow delete: if isAdmin();
+    }
+
+     // --- Rules for 'comments' (as a subcollection, if you switch) ---
+     // If you implement comments as a subcollection, uncomment and use these rules
+     /*
+     match /orders/{orderId}/comments/{commentId} {
+       // Allow any authenticated user to read comments
+       allow read: if isAuthenticated();
+
+       // Allow authenticated user to create a comment under any order
+       // Ensure the 'authorId' field in the new comment matches the authenticated user's UID
+       allow create: if isAuthenticated()
+                       && request.resource.data is map
+                       && request.resource.data.keys().hasAll(['text', 'authorId', 'createdAt']) // Required comment fields
+                       && request.resource.data.authorId == request.auth.uid // Ensure authorId matches UID
+                       && request.resource.data.createdAt is timestamp // Ensure createdAt is a timestamp
+                       ;
+        // Can add update/delete rules if needed (e.g., allow comment author to delete their own comment)
+        // allow delete: if isAuthenticated() && request.auth.uid == resource.data.authorId;
+     }
+     */
+
+  }
+}

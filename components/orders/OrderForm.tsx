@@ -44,7 +44,7 @@ export default function OrderForm() {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const router = useRouter();
-  const { currentUser, loading: authLoading } = useAuth();
+  const { user:currentUser, loading: authLoading } = useAuth();
 
   console.log("OrderForm Render - authLoading:", authLoading, "currentUser:", currentUser);
 

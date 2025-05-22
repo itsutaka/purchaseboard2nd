@@ -17,36 +17,44 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Initialize loading as true
   const [userData, setUserData] = useState<any | null>(null); // Firestore 用戶數據
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(authClient, async (firebaseUser) => {
-      setUser(firebaseUser); // 更新 Firebase Auth 用戶狀態
-      setLoading(false); // 認證狀態檢查完成
+      setUser(firebaseUser); // Update Firebase Auth user state
 
       if (firebaseUser) {
-        // 如果用戶登入，嘗試從 Firestore 獲取用戶文件數據
+        // If user is logged in, try to fetch user document data from Firestore
         try {
           const userDocRef = doc(firestoreClient, 'users', firebaseUser.uid);
           const userDocSnap = await getDoc(userDocRef);
           if (userDocSnap.exists()) {
-            setUserData(userDocSnap.data()); // 儲存 Firestore 用戶數據
+            setUserData(userDocSnap.data()); // Store Firestore user data
           } else {
             console.warn("User document not found in Firestore for UID:", firebaseUser.uid);
-            setUserData(null); // 用戶文件不存在
+            setUserData(null); // User document does not exist
           }
         } catch (error) {
           console.error("Error fetching user document:", error);
           setUserData(null);
+        } finally {
+          // Set loading to false AFTER user data fetch attempts
+          setLoading(false);
         }
       } else {
-        setUserData(null); // 用戶登出，清除用戶數據
+        // User logged out, clear user data
+        setUserData(null);
+        // Set loading to false when no user is logged in
+        setLoading(false);
       }
     });
 
-    return () => unsubscribe(); // 清理監聽器
-  }, []);
+    // Initialize loading to true when the component mounts
+    setLoading(true); // Ensure loading is true on mount
+
+    return () => unsubscribe(); // Clean up the listener
+  }, []); // Dependency array is empty, runs once on mount
 
   // 根據 userData 判斷角色
   const isAdmin = userData?.role === 'admin';
