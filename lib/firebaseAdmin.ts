@@ -33,10 +33,8 @@ if (!admin.apps.length) {
     firestore = admin.firestore();
     auth = admin.auth();
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Firebase admin initialization error:', error);
-    // 根據應用需求，這裡可以選擇重新拋出錯誤或提供一個錯誤處理機制
-    // 例如，如果初始化失敗，應用程式可能無法正常運行
     throw new Error("Failed to initialize Firebase Admin SDK.");
   }
 } else {

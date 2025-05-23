@@ -9,7 +9,6 @@ import {
   Stack,
   Heading,
   Text,
-  FormErrorMessage,
   useToast,
   Card,
   CardBody,
@@ -18,12 +17,12 @@ import {
   Select,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import Link from 'next/link';
+// import Link from 'next/link'; // 已移除未使用
 import { useRouter } from 'next/navigation';
-import { authClient } from '@/lib/firebaseClient'; // 引入客戶端 auth 實例
-import { createUserWithEmailAndPassword } from 'firebase/auth'; // 引入 Firebase 註冊方法
-import axios from 'axios'; // 用於呼叫後端 API
-import NextLink from 'next/link'; // 確保引入 next/link 並重命名
+import { authClient } from '@/lib/firebaseClient';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import axios from 'axios';
+import NextLink from 'next/link';
 
 export default function SignUpPage() {
   const [name, setName] = useState('');
@@ -35,48 +34,44 @@ export default function SignUpPage() {
   const router = useRouter();
   const toast = useToast();
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!name || !email || !password) {
       setError('請填寫所有必填欄位');
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
-      // 1. 使用 Firebase Authentication 建立用戶
       const userCredential = await createUserWithEmailAndPassword(authClient, email, password);
-      const user = userCredential.user; // 成功註冊的用戶物件 (包含 uid, email 等)
+      const user = userCredential.user;
 
       console.log("Firebase Auth User created:", user);
       if (!user) {
-          console.error("User object is null after signup!");
-          setError("註冊成功，但無法獲取用戶資訊，請稍後重試或聯繫管理員。");
-          setLoading(false);
-          return; // 如果 user 不存在，停止後續操作
+        console.error("User object is null after signup!");
+        setError("註冊成功，但無法獲取用戶資訊，請稍後重試或聯繫管理員。");
+        setLoading(false);
+        return;
       }
 
-      // 2. 呼叫後端 API 在 Firestore 中建立對應的用戶文件
-      // 我們需要用戶的 UID 和在註冊表單中填寫的其他資訊 (姓名, 部門)
-      const idToken = await user.getIdToken(); // 獲取 Firebase ID Token 進行後端驗證
+      const idToken = await user.getIdToken();
 
       console.log("Acquired ID Token:", idToken);
 
       const requestHeaders = {
-           'Authorization': `Bearer ${idToken}`,
-           'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
       };
       console.log("Sending headers to /api/users:", requestHeaders);
 
-      await axios.post('/api/users', { // 呼叫新的後端 API 路由
+      await axios.post('/api/users', {
         name: name,
         department: department,
-        // 注意：email 和 uid 可以從後端驗證 token 後獲取，不需要從前端傳遞
       }, {
-        headers: requestHeaders // 使用打印過的 headers
+        headers: requestHeaders
       });
 
       toast({
@@ -87,21 +82,19 @@ export default function SignUpPage() {
         isClosable: true,
       });
 
-      router.push('/auth/signin'); // 註冊成功後導向登入頁
-
-    } catch (err: any) {
+      router.push('/auth/signin');
+    } catch (err: unknown) {
       console.error("Signup process error:", err);
-      // 根據 Firebase Auth 錯誤碼和後端 API 錯誤碼提供友善提示
-      if (err.code === 'auth/email-already-in-use') {
-        setError('電子郵件已被註冊');
-      } else if (err.code === 'auth/weak-password') {
-         setError('密碼強度不足，請至少輸入 6 個字元');
+      if (err && typeof err === 'object' && 'code' in err) {
+        if (err.code === 'auth/email-already-in-use') {
+          setError('電子郵件已被註冊');
+        } else if (err.code === 'auth/weak-password') {
+          setError('密碼強度不足，請至少輸入 6 個字元');
+        }
       } else if (axios.isAxiosError(err) && err.response?.data?.message) {
-         // 顯示後端 API 返回的錯誤信息
-         setError('註冊後建立用戶文件失敗: ' + err.response.data.message);
-      }
-      else {
-        setError('註冊時發生錯誤: ' + err.message);
+        setError('註冊後建立用戶文件失敗: ' + err.response.data.message);
+      } else {
+        setError('註冊時發生錯誤: ' + (err as Error).message);
       }
     } finally {
       setLoading(false);
@@ -119,42 +112,42 @@ export default function SignUpPage() {
                 建立您的帳號以使用購物訂單追蹤系統
               </Text>
             </Box>
-            
+
             <form onSubmit={handleSignUp}>
               <Stack spacing={4}>
                 <FormControl isRequired>
                   <FormLabel>姓名</FormLabel>
-                  <Input 
-                    value={name} 
+                  <Input
+                    value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="請輸入您的姓名"
                   />
                 </FormControl>
-                
+
                 <FormControl isRequired>
                   <FormLabel>電子郵件</FormLabel>
-                  <Input 
-                    type="email" 
-                    value={email} 
+                  <Input
+                    type="email"
+                    value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your.email@example.com"
                   />
                 </FormControl>
-                
+
                 <FormControl isRequired>
                   <FormLabel>密碼</FormLabel>
-                  <Input 
-                    type="password" 
-                    value={password} 
+                  <Input
+                    type="password"
+                    value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="至少 6 個字元" // Firebase Auth 密碼長度要求至少 6 個字元
+                    placeholder="至少 6 個字元"
                   />
                 </FormControl>
-                
+
                 <FormControl>
                   <FormLabel>部門 (選填)</FormLabel>
-                  <Select 
-                    placeholder="選擇您的部門" 
+                  <Select
+                    placeholder="選擇您的部門"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                   >
@@ -170,13 +163,13 @@ export default function SignUpPage() {
                     <option value="other">其他</option>
                   </Select>
                 </FormControl>
-                
+
                 {error && (
                   <Text color="red.500" fontSize="sm">
                     {error}
                   </Text>
                 )}
-                
+
                 <Button
                   colorScheme="blue"
                   type="submit"
@@ -188,11 +181,11 @@ export default function SignUpPage() {
                 </Button>
               </Stack>
             </form>
-            
+
             <Divider />
-            
+
             <Box textAlign="center">
-              <Text>已有帳號？ {" "}
+              <Text>已有帳號？{" "}
                 <ChakraLink as={NextLink} href="/auth/signin" color="blue.500">
                   登入
                 </ChakraLink>

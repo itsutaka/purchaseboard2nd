@@ -13,7 +13,6 @@ import {
   Text,
   Flex,
   Select,
-  Stack,
   Tag,
   Spinner,
   Center,
@@ -57,7 +56,7 @@ export default function OrderList() {
         setLoading(true);
         const idToken = await user.getIdToken();
 
-        let apiEndpoint = '/api/orders';
+        const apiEndpoint = '/api/orders';
         if (!isAdmin && !isStaff) {
             console.log("Fetching orders for regular user (backend should filter by UID)");
         } else {

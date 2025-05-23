@@ -16,15 +16,13 @@ import {
   FormLabel,
   useToast,
   Link as ChakraLink,
-  HStack,
   Input,
   Spinner,
   Center,
 } from '@chakra-ui/react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 type OrderDetailsProps = {
@@ -54,12 +52,10 @@ type OrderDetailsProps = {
 };
 
 export default function OrderDetails({ order: initialOrder }: OrderDetailsProps) {
-  const router = useRouter();
   const toast = useToast();
   const { user, loading: authLoading, isAdmin, isStaff, userData: currentUserData } = useAuth();
 
   const [order, setOrder] = useState(initialOrder);
-  const [loading, setLoading] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [commentLoading, setCommentLoading] = useState(false);
 
@@ -68,7 +64,7 @@ export default function OrderDetails({ order: initialOrder }: OrderDetailsProps)
   const [newUrl, setNewUrl] = useState(order.url || '');
   const [newComment, setNewComment] = useState('');
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <Center h="300px">
         <Spinner size="xl" />
@@ -109,9 +105,11 @@ export default function OrderDetails({ order: initialOrder }: OrderDetailsProps)
         updatedAt: new Date().toISOString(),
       }));
 
-    } catch (error: any) {
-      console.error('Error updating order status:', error);
-      const errorMessage = error.response?.data?.message || '無法更新訂單狀態';
+    } catch (error: unknown) {
+      let errorMessage = '無法更新訂單狀態';
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      }
       toast({
         title: '更新失敗',
         description: errorMessage,
@@ -131,7 +129,7 @@ export default function OrderDetails({ order: initialOrder }: OrderDetailsProps)
     try {
       const idToken = await user.getIdToken();
 
-      const response = await axios.post(`/api/orders/${order.id}`, {
+      await axios.post(`/api/orders/${order.id}`, {
         comment: newComment.trim(),
       }, {
         headers: {
@@ -160,9 +158,11 @@ export default function OrderDetails({ order: initialOrder }: OrderDetailsProps)
         updatedAt: new Date().toISOString(),
       }));
 
-    } catch (error: any) {
-      console.error("Error adding comment:", error);
-      const errorMessage = error.response?.data?.message || '添加評論失敗';
+    } catch (error: unknown) {
+      let errorMessage = '添加評論失敗';
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      }
       toast({
         title: '添加評論失敗',
         description: errorMessage,
@@ -235,7 +235,7 @@ export default function OrderDetails({ order: initialOrder }: OrderDetailsProps)
              <Stack spacing={4}>
                 <FormControl id="status">
                   <FormLabel>更新狀態</FormLabel>
-                  <Select value={newStatus} onChange={(e) => setNewStatus(e.target.value as any)}>
+                  <Select value={newStatus} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setNewStatus(e.target.value as OrderDetailsProps['order']['status'])}>
                     <option value="pending">待審核</option>
                     <option value="approved">已批准</option>
                     <option value="purchased">已購買</option>

@@ -39,7 +39,7 @@ export default function OrderForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<OrderFormData>();
   const [loading, setLoading] = useState(false);
   const toast = useToast();
@@ -99,7 +99,7 @@ export default function OrderForm() {
 
       console.log("準備提交的訂單資料:", orderData);
 
-      const response = await axios.post('/api/orders', orderData, {
+      await axios.post('/api/orders', orderData, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${idToken}`,
@@ -115,7 +115,7 @@ export default function OrderForm() {
       });
       router.push('/orders');
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OrderForm: Error submitting order:', error);
        if (axios.isAxiosError(error)) {
            if (error.response?.status === 401) {
@@ -223,18 +223,17 @@ export default function OrderForm() {
             <FormLabel>產品連結 (選填)</FormLabel>
             <Input
               {...register('url')}
-              placeholder="https://example.com/product"
-              type="url"
+              placeholder="例如：https://www.example.com/product"
             />
             <FormErrorMessage>{errors.url?.message}</FormErrorMessage>
           </FormControl>
 
           <Button
-            mt={4}
             colorScheme="blue"
-            isLoading={loading}
             type="submit"
+            isLoading={loading}
             width="full"
+            mt={4}
           >
             提交購物請求
           </Button>

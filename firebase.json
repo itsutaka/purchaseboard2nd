@@ -12,26 +12,45 @@
       "indexes": "firestore.indexes.json"
     },
     "hosting": {
-      "port": 5000,
-      "public": ".next/static",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
-      "rewrites": [
-        {
-          "source": "**",
-          "run": {
-            "serviceId": "YOUR_CLOUD_RUN_SERVICE_ID",
-            "region": "YOUR_CLOUD_RUN_REGION"
-          }
-        }
-      ]
+      "port": 5000
     },
     "ui": {
       "enabled": true
     },
     "singleProjectMode": true
+  },
+  "firestore": {
+    "database": "(default)",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": ".", // <--- **重要：Cloud Functions 的程式碼來源是你的專案根目錄**
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ],
+      "runtime": "nodejs18" // <--- 建議使用較新的 Node.js 運行時，例如 nodejs18 或 nodejs20
+    }
+  ],
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "us-central1"
+    }
   }
 }

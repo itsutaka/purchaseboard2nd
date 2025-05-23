@@ -32,37 +32,62 @@ export default function SignInPage() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      setError('請填寫所有欄位');
-      return;
-    }
-    
-    setLoading(true);
     setError('');
-    
+    setLoading(true);
+
     try {
-      // 使用 Firebase Authentication 登入
       const userCredential = await signInWithEmailAndPassword(authClient, email, password);
-      const user = userCredential.user; // 登入成功的用戶物件
+      console.log("Signin successful:", userCredential.user.uid);
       
       toast({
-        title: '登入成功',
-        status: 'success',
-        duration: 2000,
+        title: "登入成功",
+        description: "歡迎回來！",
+        status: "success",
+        duration: 3000,
         isClosable: true,
+        position: "top",
       });
-      
-      router.push('/dashboard'); // 登入成功後導向儀表板
-    } catch (err: any) {
+
+      router.push('/dashboard');
+    } catch (err: unknown) {
       console.error("Signin error:", err);
-       // 根據 Firebase Auth 錯誤碼提供友善提示
-      if (err.code === 'auth/invalid-email') {
-        setError('電子郵件格式不正確');
-      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-         setError('電子郵件或密碼不正確');
+      
+      if (err && typeof err === 'object') {
+        const firebaseError = err as { code?: string; message?: string };
+        let errorMessage = '登入時發生錯誤';
+        
+        if (firebaseError.code === 'auth/invalid-email') {
+          errorMessage = '電子郵件格式不正確';
+        } else if (firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
+          errorMessage = '電子郵件或密碼錯誤';
+        } else if (firebaseError.code === 'auth/too-many-requests') {
+          errorMessage = '登入嘗試次數過多，請稍後再試';
+        } else {
+          errorMessage = firebaseError.message || '登入時發生錯誤';
+        }
+
+        setError(errorMessage);
+        
+        toast({
+          title: "登入失敗",
+          description: errorMessage,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "top",
+        });
       } else {
-        setError('登入時發生錯誤: ' + err.message);
+        const errorMessage = '登入時發生未知錯誤';
+        setError(errorMessage);
+        
+        toast({
+          title: "登入失敗",
+          description: errorMessage,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "top",
+        });
       }
     } finally {
       setLoading(false);
