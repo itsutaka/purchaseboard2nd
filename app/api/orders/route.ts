@@ -78,27 +78,35 @@ export async function GET(req: NextRequest) {
 
 // 創建新訂單
 export async function POST(req: NextRequest) {
+  console.log("POST /api/orders: Request received"); 
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log("POST /api/orders: Auth header missing or malformed"); 
       return NextResponse.json({ message: 'Authorization header missing or malformed' }, { status: 401 });
     }
 
     const idToken = authHeader.split(' ')[1];
     const decodedToken = await auth.verifyIdToken(idToken);
     const uid = decodedToken.uid;
+    console.log(`POST /api/orders: Token verified for UID: ${uid}`); 
 
     // 獲取用戶資料 (例如 name, email) 以填充 requestedBy
+    console.log(`POST /api/orders: Fetching user data for UID: ${uid}`); 
     const userDoc = await firestore.collection('users').doc(uid).get();
     const userData = userDoc.data();
 
-    if (!userData) {
-         return NextResponse.json({ message: 'User data not found' }, { status: 404 }); // 或者 403 Forbidden
+    console.log("POST /api/orders: User data from Firestore:", userData); 
+
+    if (!userDoc.exists || !userData) { 
+         console.log(`POST /api/orders: User data not found for UID: ${uid}`); 
+         return NextResponse.json({ message: `User data not found for UID: ${uid}. Cannot create order.` }, { status: 404 });
     }
 
-    const { name, email } = userData; // 假設 userData 中有 name 和 email
+    const { name, email } = userData; // 確保 userData 存在
 
     const body = await req.json();
+    console.log("POST /api/orders: Request body:", body); 
     const { title, description, priority, quantity, url } = body;
 
     // 基本驗證 (可以更嚴格)
@@ -115,8 +123,8 @@ export async function POST(req: NextRequest) {
       priority,
       requestedBy: {
         userId: uid,
-        name: name || 'Unknown User', // 提供預設值
-        email: email || 'unknown@example.com',
+        name: name || decodedToken.name || 'Unknown User', // 從 decodedToken 中獲取 name 作為備用
+        email: email || decodedToken.email || 'unknown@example.com', // 從 decodedToken 中獲取 email 作為備用
       },
       quantity,
       url, // url 是可選的
@@ -124,11 +132,13 @@ export async function POST(req: NextRequest) {
       updatedAt: now,
     };
 
+    console.log("POST /api/orders: Prepared new order data:", newOrderData); 
     const docRef = await firestore.collection('orders').add(newOrderData);
+    console.log(`POST /api/orders: Order created with ID: ${docRef.id}`); 
 
     return NextResponse.json({ message: 'Order created successfully', id: docRef.id }, { status: 201 });
   } catch (error: unknown) { // 使用 unknown
-    console.error("Backend /api/orders: Error:", error);
+    console.error("Backend /api/orders POST Error:", error); 
 
     if (error instanceof Error) {
       console.error("Backend /api/orders: Token verification failed (or other Error):", error.message);

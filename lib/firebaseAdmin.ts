@@ -4,37 +4,44 @@ import * as admin from 'firebase-admin';
 let firestore: admin.firestore.Firestore;
 let auth: admin.auth.Auth;
 
+console.log("Attempting to initialize Firebase Admin SDK...");
+console.log("Current NODE_ENV:", process.env.NODE_ENV);
+console.log("FIREBASE_PROJECT_ID (admin):", process.env.FIREBASE_PROJECT_ID);
+console.log("FIREBASE_CLIENT_EMAIL (admin):", process.env.FIREBASE_CLIENT_EMAIL);
+// 不要在日誌中輸出完整的 privateKey，但可以檢查它是否存在
+console.log("FIREBASE_PRIVATE_KEY (admin) exists:", !!process.env.FIREBASE_PRIVATE_KEY);
+
 if (!admin.apps.length) {
   try {
-    // 在非開發模式 (即生產模式或任何非 'development' 環境) 下，使用服務帳戶憑證初始化
-    // 在開發模式下，Admin SDK 如果檢測到 FIREBASE_*_EMULATOR_HOST 環境變數會自動連接模擬器
-    // 即使在開發模式，也需要 projectId
-    admin.initializeApp({
-      projectId: process.env.FIREBASE_PROJECT_ID, // 使用後端專用的專案 ID 變數
-      // 在生產環境下，會使用服務帳戶憑證，這裡的 credential 會覆蓋其他配置
-      credential: process.env.NODE_ENV !== 'development' ? admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        // privateKey 必須是有效的 PEM 格式金鑰，
-        // 在環境變數中儲存時，需要將 JSON 中的 \\n 轉換為實際的換行符
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\\\n/g, '\n'),
-      }) : undefined, // 開發模式下不提供憑證，依賴環境變數自動連接模擬器
-    });
+    const serviceAccount = {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\\\n/g, '\n'),
+    };
 
-    console.log(`Firebase Admin SDK initialized for ${process.env.NODE_ENV} mode.`);
-    if (process.env.NODE_ENV === 'development') {
-         console.log('Expecting to connect to emulators based on environment variables.');
-         console.log('FIREBASE_AUTH_EMULATOR_HOST:', process.env.FIREBASE_AUTH_EMULATOR_HOST);
-         console.log('FIREBASE_FIRESTORE_EMULATOR_HOST:', process.env.FIREBASE_FIRESTORE_EMULATOR_HOST);
+    // 檢查憑證物件是否基本完整
+    if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
+      console.error('Firebase Admin SDK Error: Missing required service account properties (projectId, clientEmail, or privateKey) in environment variables.');
+      throw new Error('Missing required service account properties for Firebase Admin SDK.');
     }
 
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      // 您也可以在這裡明確指定 databaseURL 如果需要，但通常 credential 足夠
+      // databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`
+    });
 
-    // 獲取並導出 Firestore 和 Auth 實例
+    console.log("Firebase Admin SDK initialized successfully using service account.");
+
     firestore = admin.firestore();
     auth = admin.auth();
 
   } catch (error: unknown) {
     console.error('Firebase admin initialization error:', error);
+    // 可以在這裡檢查 error 物件的詳細內容，例如 error.errorInfo
+    if (error instanceof Error && (error as any).errorInfo) {
+        console.error('Firebase Admin SDK Initialization Error Info:', (error as any).errorInfo);
+    }
     throw new Error("Failed to initialize Firebase Admin SDK.");
   }
 } else {

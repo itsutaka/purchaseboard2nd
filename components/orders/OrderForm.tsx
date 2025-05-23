@@ -30,7 +30,7 @@ import { useAuth } from '@/context/AuthContext';
 type OrderFormData = {
   title: string;
   description: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
   quantity: number;
   url?: string;
 };

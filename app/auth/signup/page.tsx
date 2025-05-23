@@ -61,18 +61,20 @@ export default function SignUpPage() {
 
       console.log("Acquired ID Token:", idToken);
 
-      const requestHeaders = {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
-      };
-      console.log("Sending headers to /api/users:", requestHeaders);
-
-      await axios.post('/api/users', {
+      const userDataForApi = {
+        email: user.email,
         name: name,
-        department: department,
-      }, {
-        headers: requestHeaders
+        role: 'user',
+      };
+
+      console.log("前端準備發送給 /api/users 的資料 (userDataForApi):", userDataForApi);
+
+      const response = await axios.post('/api/users', userDataForApi, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
       });
+      console.log("/api/users 回應:", response.data);
 
       toast({
         title: '註冊成功',

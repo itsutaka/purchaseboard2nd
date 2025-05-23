@@ -12,6 +12,16 @@ interface UserData {
   updatedAt: Timestamp;
 }
 
+// Define a more specific type for what's written to Firestore
+interface UserDataForFirestore {
+  name: string;
+  email: string; // email from token
+  role: 'user' | 'staff' | 'admin';
+  department?: string; // Optional field
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 // 創建新用戶文檔
 export async function POST(req: NextRequest) {
   try {
@@ -22,74 +32,81 @@ export async function POST(req: NextRequest) {
     }
 
     const idToken = authHeader.split(' ')[1];
-    console.log("Backend received ID Token:", idToken); // <-- 後端 log 檢查接收到的 Token
+    console.log("Backend /api/users received ID Token:", idToken); 
 
-    // 驗證 ID Token
     const decodedToken = await auth.verifyIdToken(idToken);
-    console.log("Backend decoded Token:", decodedToken); // <-- 後端 log (如果成功)
-    const uid = decodedToken.uid; // 獲取用戶 UID
-    const email = decodedToken.email; // 從 Token 中獲取郵箱
+    console.log("Backend /api/users decoded Token:", decodedToken); 
+    const uid = decodedToken.uid; 
+    const emailFromToken = decodedToken.email; 
 
-    // 2. 解析請求體，獲取前端傳遞的額外用戶資訊
-    const body = await req.json();
-    const { name, department, role } = body;
+    if (!emailFromToken) { // Robust check for email from token
+        console.error('Backend /api/users - Email not found in decoded token');
+        return NextResponse.json({ message: 'Email not found in token' }, { status: 400 });
+    }
 
-    if (!name || !email || !role) {
+    // 2. 解析請求體
+    const body = await req.json() as Partial<UserData>; // Use Partial if not all fields are guaranteed
+    console.log("Backend /api/users received body:", body); 
+    const { name, department, role } = body; 
+    console.log(`Backend /api/users - Parsed from body: name='${name}', role='${role}', department='${department}'`);
+
+    if (!name || !role) { // email is from token, so only check name and role from body
+      console.error(`Backend /api/users - Missing fields from body: name=${name}, role=${role}`);
       return NextResponse.json(
-        { message: 'Missing required fields (name, email, role)' },
+        { message: `Missing required fields from body. Received: name=${name}, role=${role}` },
         { status: 400 }
       );
     }
 
-    // 驗證 role 是否為有效值
     if (!['user', 'staff', 'admin'].includes(role)) {
+      console.error(`Backend /api/users - Invalid role: ${role}`);
       return NextResponse.json(
-        { message: 'Invalid role value. Must be one of: user, staff, admin' },
+        { message: `Invalid role value. Must be one of: user, staff, admin. Received: ${role}` },
         { status: 400 }
       );
     }
 
-    // 3. 在 Firestore 的 'users' 集合中，以 UID 作為文件 ID 建立用戶文件
     const userDocRef = firestore.collection('users').doc(uid);
     const userDocSnapshot = await userDocRef.get();
 
     if (userDocSnapshot.exists) {
-        // 如果用戶文件已經存在 (例如，用戶重複提交或某些情況)，可以選擇更新或返回錯誤
-        // 這裡我們返回一個衝突錯誤
+        console.warn(`Backend /api/users - User document already exists for UID: ${uid}`);
         return NextResponse.json({ message: 'User document already exists' }, { status: 409 });
     }
 
-    const now = Timestamp.now(); // 使用 Firebase Timestamp
+    const now = Timestamp.now(); 
 
-    // 明確指定 userData 的型別
-    const userData: UserData = {
+    const userDataToSet: UserDataForFirestore = {
       name,
-      email,
-      role: role as 'user' | 'staff' | 'admin', // 型別斷言，因為我們已經驗證過 role 的值
-      department: department || undefined, // 如果 department 不存在，設為 undefined
+      email: emailFromToken,
+      role: role as 'user' | 'staff' | 'admin', 
       createdAt: now,
       updatedAt: now,
     };
 
-    await userDocRef.set(userData); // 建立文件
+    if (department !== undefined && department !== null && department.trim() !== '') { // Only add department if it's a meaningful string
+      userDataToSet.department = department;
+    }
+    
+    console.log(`Backend /api/users - Preparing to set user data for UID ${uid}:`, userDataToSet);
+    await userDocRef.set(userDataToSet); 
+    console.log(`Backend /api/users - User document created successfully for UID: ${uid}`);
 
     return NextResponse.json({ message: 'User document created successfully', userId: uid }, { status: 201 });
 
   } catch (error: unknown) {
-    console.error("Error creating user document:", error);
-    let errorMessage = 'Internal Server Error';
-    let statusCode = 500;
-
+    console.error("Error creating user document:", error); // General error log
     if (error instanceof Error) {
-      const errorCode = (error as { code?: string }).code;
-      if (errorCode === 'auth/argument-error' || errorCode === 'auth/id-token-expired') {
-        errorMessage = 'Invalid or expired token';
-        statusCode = 401;
-      } else {
-        errorMessage = error.message || errorMessage;
-      }
+        // Log more specific Firestore errors if possible
+        console.error("Error details:", (error as any).details || error.message);
+        const errorCode = (error as { code?: string }).code;
+        if (errorCode === 'auth/argument-error' || errorCode === 'auth/id-token-expired') {
+            return NextResponse.json({ message: 'Invalid or expired token' }, { status: 401 });
+        }
+         // Check for Firestore specific error patterns if needed, though the generic one below might cover it
+        return NextResponse.json({ message: `Internal Server Error: ${error.message}` }, { status: 500 });
     }
-    return NextResponse.json({ message: errorMessage }, { status: statusCode });
+    return NextResponse.json({ message: 'Internal Server Error (Unknown Error Type)' }, { status: 500 });
   }
 }
 
